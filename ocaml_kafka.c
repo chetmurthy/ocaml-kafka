@@ -245,6 +245,17 @@ value ocaml_kafka_new_producer(value caml_delivery_callback, value caml_producer
 }
 
 extern CAMLprim
+value ocaml_kafka_handler_set_log_level(value caml_kafka_handler, value caml_level)
+{
+  CAMLparam2(caml_kafka_handler, caml_level);
+
+  rd_kafka_t *handler = handler_val(caml_kafka_handler);
+  int level = Int_val(caml_level);
+  rd_kafka_set_log_level(handler, level);
+  CAMLreturn(Val_unit);
+}
+
+extern CAMLprim
 value ocaml_kafka_destroy_handler(value caml_kafka_handler)
 {
   CAMLparam1(caml_kafka_handler);
@@ -354,8 +365,8 @@ value ocaml_kafka_consume_start(value caml_kafka_topic, value caml_kafka_partiti
   CAMLparam3(caml_kafka_topic,caml_kafka_partition,caml_kafka_offset);
 
   rd_kafka_topic_t *topic = get_handler(Field(caml_kafka_topic,0));
-  int32 partition = Int_val(caml_kafka_partition);
-  int64 offset = Int64_val(caml_kafka_offset);
+  int32_t partition = Int_val(caml_kafka_partition);
+  int64_t offset = Int64_val(caml_kafka_offset);
   int err = rd_kafka_consume_start(topic, partition, offset);
   if (err) {
      rd_kafka_resp_err_t rd_errno = rd_kafka_errno2err(errno);
@@ -371,7 +382,7 @@ value ocaml_kafka_consume_stop(value caml_kafka_topic, value caml_kafka_partitio
   CAMLparam2(caml_kafka_topic,caml_kafka_partition);
 
   rd_kafka_topic_t *topic = get_handler(Field(caml_kafka_topic,0));
-  int32 partition = Int_val(caml_kafka_partition);
+  int32_t partition = Int_val(caml_kafka_partition);
   int err = rd_kafka_consume_stop(topic, partition);
   if (err) {
      rd_kafka_resp_err_t rd_errno = rd_kafka_errno2err(errno);
@@ -458,7 +469,7 @@ value ocaml_kafka_consume(value caml_kafka_timeout, value caml_kafka_topic, valu
   CAMLlocal1(caml_msg);
 
   rd_kafka_topic_t *topic = get_handler(Field(caml_kafka_topic,0));
-  int32 partition = Int_val(caml_kafka_partition);
+  int32_t partition = Int_val(caml_kafka_partition);
   int timeout = DEFAULT_TIMEOUT_MS;
   if (Is_block(caml_kafka_timeout)) {
     int t = Int_val(Field(caml_kafka_timeout, 0));
@@ -485,7 +496,7 @@ value ocaml_kafka_consume_batch(value caml_kafka_timeout, value caml_msg_count, 
   CAMLlocal1(caml_msg_list);
 
   rd_kafka_topic_t *topic = get_handler(Field(caml_kafka_topic,0));
-  int32 partition = Int_val(caml_kafka_partition);
+  int32_t partition = Int_val(caml_kafka_partition);
   int timeout = DEFAULT_TIMEOUT_MS;
   if (Is_block(caml_kafka_timeout)) {
     int t = Int_val(Field(caml_kafka_timeout, 0));
@@ -522,7 +533,7 @@ value ocaml_kafka_produce(value caml_kafka_topic, value caml_kafka_partition, va
   CAMLlocal1(caml_key);
 
   rd_kafka_topic_t *topic = get_handler(Field(caml_kafka_topic,0));
-  int32 partition = Int_val(caml_kafka_partition);
+  int32_t partition = Int_val(caml_kafka_partition);
 
   void* payload = String_val(caml_msg);
   size_t len = caml_string_length(caml_msg);
@@ -579,8 +590,8 @@ value ocaml_kafka_store_offset(value caml_kafka_topic, value caml_kafka_partitio
   CAMLparam3(caml_kafka_topic,caml_kafka_partition,caml_kafka_offset);
 
   rd_kafka_topic_t *topic = get_handler(Field(caml_kafka_topic,0));
-  int32 partition = Int_val(caml_kafka_partition);
-  int64 offset = Int64_val(caml_kafka_offset);
+  int32_t partition = Int_val(caml_kafka_partition);
+  int64_t offset = Int64_val(caml_kafka_offset);
 
   rd_kafka_resp_err_t rd_errno = rd_kafka_offset_store(topic, partition, offset);
   if (rd_errno) {
@@ -663,8 +674,8 @@ value ocaml_kafka_consume_start_queue(value caml_kafka_queue, value caml_kafka_t
      Store_field(caml_kafka_queue,1,caml_cons);
   }
 
-  int32 partition = Int_val(caml_kafka_partition);
-  int64 offset = Int64_val(caml_kafka_offset);
+  int32_t partition = Int_val(caml_kafka_partition);
+  int64_t offset = Int64_val(caml_kafka_offset);
   int err = rd_kafka_consume_start_queue(topic, partition, offset, queue);
   if (err) {
      rd_kafka_resp_err_t rd_errno = rd_kafka_errno2err(errno);
@@ -750,8 +761,10 @@ value ocaml_kafka_consume_queue(value caml_kafka_timeout, value caml_kafka_queue
     timeout = t>=0 ? t : DEFAULT_TIMEOUT_MS;
   }
 
+  caml_enter_blocking_section();
   rd_kafka_message_t* message = rd_kafka_consume_queue(queue, timeout);
-
+  caml_leave_blocking_section();
+  
   if (message) {
      caml_msg = ocaml_kafka_extract_queue_message(caml_kafka_queue, message);
      rd_kafka_message_destroy(message);

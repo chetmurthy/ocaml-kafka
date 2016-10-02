@@ -92,6 +92,19 @@ val new_producer :
   -> (string*string) list
   -> handler
 
+type log_level =
+  | EMERG                      (** System is unusable *)
+  | ALERT                      (** Action must be taken immediately *)
+  | CRIT                       (** Critical condition *)
+  | ERR                        (** Error conditions *)
+  | WARNING                    (** Warning conditions *)
+  | NOTICE                     (** Normal, but significant, condition *)
+  | INFO                       (** Informational message *)
+  | DEBUG                      (** Debug-level message *)
+
+(* set the log-level for the handler *)
+val handler_set_log_level : handler -> log_level -> unit
+
 (* Destroy Kafka handle (either a consumer or a producer) *)
 val destroy_handler : handler -> unit
 

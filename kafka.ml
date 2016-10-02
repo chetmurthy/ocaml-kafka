@@ -60,6 +60,30 @@ external new_producer :
   -> handler
   = "ocaml_kafka_new_producer"
 
+type log_level =
+  | EMERG                      (** System is unusable *)
+  | ALERT                      (** Action must be taken immediately *)
+  | CRIT                       (** Critical condition *)
+  | ERR                        (** Error conditions *)
+  | WARNING                    (** Warning conditions *)
+  | NOTICE                     (** Normal, but significant, condition *)
+  | INFO                       (** Informational message *)
+  | DEBUG                      (** Debug-level message *)
+
+external _handler_set_log_level : handler -> int -> unit = "ocaml_kafka_handler_set_log_level"
+let handler_set_log_level h l =
+  let level =
+    match l with
+  | EMERG -> 0
+  | ALERT -> 1
+  | CRIT -> 2
+  | ERR -> 3
+  | WARNING -> 4
+  | NOTICE -> 5
+  | INFO -> 6
+  | DEBUG -> 7 in
+  _handler_set_log_level h level
+      
 external destroy_handler : handler -> unit = "ocaml_kafka_destroy_handler"
 external handler_name : handler -> string = "ocaml_kafka_handler_name"
 
