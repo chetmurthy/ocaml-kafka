@@ -50,6 +50,51 @@ type error =
 
 exception Error of error * string
 
+let string_of_Error = function
+  | Error(e, s) ->
+     Printf.sprintf "Kafka.Error(%s, \"%s\")"
+       (match e with
+       | BAD_MSG -> "BAD_MSG"
+       | BAD_COMPRESSION -> "BAD_COMPRESSION"
+       | DESTROY -> "DESTROY"
+       | FAIL -> "FAIL"
+       | TRANSPORT -> "TRANSPORT"
+       | CRIT_SYS_RESOURCE -> "CRIT_SYS_RESOURCE"
+       | RESOLVE -> "RESOLVE"
+       | MSG_TIMED_OUT -> "MSG_TIMED_OUT"
+       | UNKNOWN_PARTITION -> "UNKNOWN_PARTITION"
+       | FS -> "FS"
+       | UNKNOWN_TOPIC -> "UNKNOWN_TOPIC"
+       | ALL_BROKERS_DOWN -> "ALL_BROKERS_DOWN"
+       | INVALID_ARG -> "INVALID_ARG"
+       | TIMED_OUT -> "TIMED_OUT"
+       | QUEUE_FULL -> "QUEUE_FULL"
+       | ISR_INSUFF -> "ISR_INSUFF"
+       | UNKNOWN -> "UNKNOWN"
+       | OFFSET_OUT_OF_RANGE -> "OFFSET_OUT_OF_RANGE"
+       | INVALID_MSG -> "INVALID_MSG"
+       | UNKNOWN_TOPIC_OR_PART -> "UNKNOWN_TOPIC_OR_PART"
+       | INVALID_MSG_SIZE -> "INVALID_MSG_SIZE"
+       | LEADER_NOT_AVAILABLE -> "LEADER_NOT_AVAILABLE"
+       | NOT_LEADER_FOR_PARTITION -> "NOT_LEADER_FOR_PARTITION"
+       | REQUEST_TIMED_OUT -> "REQUEST_TIMED_OUT"
+       | BROKER_NOT_AVAILABLE -> "BROKER_NOT_AVAILABLE"
+       | REPLICA_NOT_AVAILABLE -> "REPLICA_NOT_AVAILABLE"
+       | MSG_SIZE_TOO_LARGE -> "MSG_SIZE_TOO_LARGE"
+       | STALE_CTRL_EPOCH -> "STALE_CTRL_EPOCH"
+       | OFFSET_METADATA_TOO_LARGE -> "OFFSET_METADATA_TOO_LARGE"
+       | CONF_UNKNOWN -> "CONF_UNKNOWN"
+       | CONF_INVALID -> "CONF_INVALID"
+       )
+       (String.escaped s)
+
+let print_Error = function
+  | Error _ as exn ->
+     Some(string_of_Error exn)
+  | _ -> failwith "print_Error: caught"
+
+let _ = Printexc.register_printer print_Error
+
 let _ = 
   Callback.register_exception "kafka.error" (Error(UNKNOWN,"msg string"));
 
